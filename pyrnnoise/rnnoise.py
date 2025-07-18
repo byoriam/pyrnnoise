@@ -41,7 +41,7 @@ lib.rnnoise_create.restype = ctypes.c_void_p
 lib.rnnoise_get_frame_size.restype = ctypes.c_int
 lib.rnnoise_process_frame.restype = ctypes.c_float
 FRAME_SIZE = lib.rnnoise_get_frame_size()
-SAMPLE_RATE = 48000
+SAMPLE_RATE = 16000
 FRAME_SIZE_MS = FRAME_SIZE * 1000 // SAMPLE_RATE
 DTYPE = np.int16
 
