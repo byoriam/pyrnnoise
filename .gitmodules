@@ -1,3 +1,4 @@
 [submodule "rnnoise"]
 	path = rnnoise
-	url = https://github.com/xiph/rnnoise.git
+	url = git@github.com:byoriam/rnnoise.git
+
