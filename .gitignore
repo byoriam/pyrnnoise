@@ -2,3 +2,6 @@
 *.dylib
 *.so
 
+build/
+pyrnnoise.egg-info/
+pyrnnoise/build/
