@@ -13,7 +13,7 @@ echo "Prepare RNNoise repo (git submodule) (TODO: only run if folder does not ex
 #git checkout v0.2
 
 echo "🛠️ Running CMake (configure)..."
-cmake -B pyrnnoise/build -DCMAKE_BUILD_TYPE=Release
+cmake -B pyrnnoise/build -DCMAKE_BUILD_TYPE=Release -DRTCD=ON
 
 echo "🔨 Running CMake (build + install target)..."
 cmake --build pyrnnoise/build --target install

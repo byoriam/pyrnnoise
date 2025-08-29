@@ -36,6 +36,9 @@ class RNNoise:
                 destroy(denoise_state)
 
     def reset(self):
+        if self.denoise_states is not None:
+            for denoise_state in self.denoise_states:
+                destroy(denoise_state)
         self.denoise_states = None
 
     # def process_frame(self, frame: np.ndarray, partial: bool = False):
@@ -71,16 +74,16 @@ class RNNoise:
         if self.denoise_states is None:
             self.denoise_states = [create() for _ in range(self.channels)]
 
-        # Resample to 48kHz if needed
-        if self.sample_rate != SAMPLE_RATE:
-            num_samples = int(FRAME_SIZE * self.sample_rate / SAMPLE_RATE)
-            frame = resample(frame, num_samples, axis=1)
+        # # Resample to 48kHz if needed
+        # if self.sample_rate != SAMPLE_RATE:
+        #     num_samples = int(FRAME_SIZE * self.sample_rate / SAMPLE_RATE)
+        #     frame = resample(frame, num_samples, axis=1)
 
         denoised_frame, speech_probs = process_frame(self.denoise_states, frame)
 
-        # Resample back to original rate if needed
-        if self.sample_rate != SAMPLE_RATE:
-            denoised_frame = resample(denoised_frame, frame.shape[1], axis=1)
+        # # Resample back to original rate if needed
+        # if self.sample_rate != SAMPLE_RATE:
+        #     denoised_frame = resample(denoised_frame, frame.shape[1], axis=1)
 
         return speech_probs, denoised_frame
 
@@ -100,7 +103,7 @@ class RNNoise:
 
     def process_wav(self, in_path, out_path):
         with sf.SoundFile(in_path, mode='r') as reader:
-            self.sample_rate = reader.samplerate
+            #self.sample_rate = reader.samplerate
             self.channels = reader.channels
             subtype = reader.subtype
 
@@ -125,7 +128,7 @@ class RNNoise:
     
     def process_wav_to_array(self, in_path):
         with sf.SoundFile(in_path, mode='r') as reader:
-            self.sample_rate = reader.samplerate
+            #self.sample_rate = reader.samplerate
             self.channels = reader.channels
             dtype = 'int16'
 
@@ -161,6 +164,13 @@ class RNNoise:
         Returns:
             np.ndarray: Denoised audio, same shape as input.
         """
+        if audio.size == 0:
+            return np.concatenate(audio, axis=1), np.array([0]) 
+        elif len(audio.shape) == 2 and audio.shape[1] < FRAME_SIZE:
+            return np.concatenate(audio, axis=1), np.array([0]) 
+        elif len(audio.shape) == 1 and audio.shape[0] < FRAME_SIZE:
+            return audio.reshape((audio.size, 1)), np.array([0])
+        
         if audio.ndim == 1:
             audio = audio[np.newaxis, :]  # [1, samples]
         elif audio.ndim == 2:
@@ -168,15 +178,17 @@ class RNNoise:
         else:
             raise ValueError("Input audio must be 1D or 2D numpy array")
 
-        self.sample_rate = sample_rate
+        #self.sample_rate = sample_rate
         self.channels = audio.shape[0]
 
         frame_size = int(sample_rate * FRAME_SIZE_MS / 1000)
         total_samples = audio.shape[1]
         num_frames = total_samples // frame_size
 
+
         self.reset()  # Ensure fresh state
         output_frames = []
+        speech_probs = []
 
         for i in range(num_frames):
             frame = audio[:, i * frame_size:(i + 1) * frame_size]
@@ -185,10 +197,12 @@ class RNNoise:
                 frame = np.pad(frame, ((0, 0), (0, pad_width)), mode='constant')
 
             partial = i == num_frames - 1
-            for _, processed in self.process_chunk(frame, partial):
+            for speech_prob, processed in self.process_chunk(frame, partial):
                 output_frames.append(processed)
+                speech_probs.append(speech_prob)
 
-        output = np.concatenate(output_frames, axis=1)  # [channels, samples]
-
-        return output.T.astype(np.int16)  # [samples, channels]
+        output_denoised     = np.concatenate(output_frames, axis=1)  # [channels, samples]
+        output_speech_probs = np.concatenate(speech_probs, axis=1)
+        
+        return output_denoised.T.astype(np.int16), output_speech_probs.T.astype(np.float32) # [samples, channels] , ???
 
