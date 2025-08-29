@@ -45,6 +45,9 @@ if(MSVC)
   add_compile_definitions(RNNOISE_BUILD)
 endif()
 
+#add_compile_options(-fanalyzer -fstack-usage)
+#add_compile_options(-fstack-usage)
+
 add_library(rnnoise SHARED ${RNNOISE_SOURCES})
 set(PYRNNOISE ${CMAKE_CURRENT_SOURCE_DIR}/pyrnnoise)
 install(TARGETS
