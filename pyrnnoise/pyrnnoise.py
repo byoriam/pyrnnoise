@@ -41,6 +41,12 @@ class RNNoise:
                 destroy(denoise_state)
         self.denoise_states = None
 
+    def get_sample_rate():
+        return SAMPLE_RATE
+    
+    def get_frame_size():
+        return FRAME_SIZE, FRAME_SIZE_MS
+
     # def process_frame(self, frame: np.ndarray, partial: bool = False):
     #     if self.denoise_states is None:
     #         self.denoise_states = [create() for _ in range(self.channels)]

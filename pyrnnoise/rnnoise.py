@@ -15,7 +15,7 @@
 import ctypes
 import os
 import platform
-from typing import List, Union
+from typing import List, Union, Tuple
 
 import numpy as np
 
@@ -41,7 +41,7 @@ lib.rnnoise_create.restype = ctypes.c_void_p
 lib.rnnoise_get_frame_size.restype = ctypes.c_int
 lib.rnnoise_process_frame.restype = ctypes.c_float
 FRAME_SIZE = lib.rnnoise_get_frame_size()
-SAMPLE_RATE = 48000
+# SAMPLE_RATE = 48000
 SAMPLE_RATE = 16000
 FRAME_SIZE_MS = FRAME_SIZE * 1000 // SAMPLE_RATE
 DTYPE = np.int16
@@ -55,7 +55,7 @@ def destroy(state: ctypes.c_void_p):
     lib.rnnoise_destroy(state)
 
 
-def process_mono_frame(state: ctypes.c_void_p, frame: np.ndarray) -> tuple[np.ndarray, ctypes.c_float]:
+def process_mono_frame(state: ctypes.c_void_p, frame: np.ndarray) -> Tuple[np.ndarray, ctypes.c_float]:
     if frame.dtype in (np.float32, np.float64) and -1 <= frame.all() <= 1:
         frame = (frame * 32767).astype(DTYPE)
     assert frame.dtype == DTYPE
@@ -71,7 +71,7 @@ def process_mono_frame(state: ctypes.c_void_p, frame: np.ndarray) -> tuple[np.nd
 
 def process_frame(
     states: Union[ctypes.c_void_p, List[ctypes.c_void_p]], frame: np.ndarray
-) -> tuple[np.ndarray, ctypes.c_float]:
+) -> Tuple[np.ndarray, ctypes.c_float]:
     if frame.ndim == 1:
         return process_mono_frame(states, frame)
     else:
