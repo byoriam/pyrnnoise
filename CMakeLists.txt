@@ -3,6 +3,7 @@ project("RnNoise" LANGUAGES C)
 
 option(RTCD "Enable x86 run-time CPU detection" OFF)
 option(BUILD_BIN "Build rnnoise_demo binary" OFF)
+set(SAMPLE_RATE_VERSION "16" CACHE STRING "eband5ms table variant to build (48 or 16)")
 
 #file(STRINGS "rnnoise/model_version" VERSION LIMIT_COUNT 1)
 #set(MODEL "rnnoise_data-${VERSION}.tar.gz")
@@ -49,6 +50,7 @@ endif()
 #add_compile_options(-fstack-usage)
 
 add_library(rnnoise SHARED ${RNNOISE_SOURCES})
+target_compile_definitions(rnnoise PRIVATE sample_rate_version=${SAMPLE_RATE_VERSION})
 set(PYRNNOISE ${CMAKE_CURRENT_SOURCE_DIR}/pyrnnoise)
 install(TARGETS
   rnnoise

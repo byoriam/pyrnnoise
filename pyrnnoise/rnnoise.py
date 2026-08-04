@@ -41,8 +41,13 @@ lib.rnnoise_create.restype = ctypes.c_void_p
 lib.rnnoise_get_frame_size.restype = ctypes.c_int
 lib.rnnoise_process_frame.restype = ctypes.c_float
 FRAME_SIZE = lib.rnnoise_get_frame_size()
-# SAMPLE_RATE = 48000
-SAMPLE_RATE = 16000
+try:
+    from ._build_config import SAMPLE_RATE_VERSION
+except ImportError:
+    # Sidecar file missing (e.g. stale/manual build) - fall back to the
+    # eband5ms table's historical default.
+    SAMPLE_RATE_VERSION = 16
+SAMPLE_RATE = SAMPLE_RATE_VERSION * 1000
 FRAME_SIZE_MS = FRAME_SIZE * 1000 // SAMPLE_RATE
 DTYPE = np.int16
 
@@ -56,7 +61,7 @@ def destroy(state: ctypes.c_void_p):
 
 
 def process_mono_frame(state: ctypes.c_void_p, frame: np.ndarray) -> Tuple[np.ndarray, ctypes.c_float]:
-    if frame.dtype in (np.float32, np.float64) and -1 <= frame.all() <= 1:
+    if frame.dtype in (np.float32, np.float64) and np.all((-1 <= frame) & (frame <= 1)):
         frame = (frame * 32767).astype(DTYPE)
     assert frame.dtype == DTYPE
     frame = frame.astype(np.float32)

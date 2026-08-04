@@ -172,9 +172,9 @@ class RNNoise:
         """
         if audio.size == 0:
             return np.concatenate(audio, axis=1), np.array([0]) 
-        elif len(audio.shape) == 2 and audio.shape[1] < FRAME_SIZE:
+        elif audio.ndim == 2 and audio.shape[1] < FRAME_SIZE:
             return np.concatenate(audio, axis=1), np.array([0]) 
-        elif len(audio.shape) == 1 and audio.shape[0] < FRAME_SIZE:
+        elif audio.ndim == 1 and audio.shape[0] < FRAME_SIZE:
             return audio.reshape((audio.size, 1)), np.array([0]) 
 
         if audio.ndim == 1:
